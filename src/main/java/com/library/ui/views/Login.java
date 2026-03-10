@@ -1,6 +1,8 @@
 package com.library.ui.views;
 
-import com.vaadin.flow.component.html.H1;
+import com.library.ui.components.ViewToolbar;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.login.LoginForm;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEnterEvent;
@@ -25,7 +27,11 @@ public class Login extends VerticalLayout implements BeforeEnterObserver {
 
         login.setAction("login");
 
-        add(new H1("Test Application"), login);
+        Button signupBtn = new Button("Don't have an account? Sign up");
+        signupBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        signupBtn.addClickListener(e -> getUI().ifPresent(ui -> ui.navigate("signup")));
+
+        add(login, signupBtn);
     }
 
     @Override

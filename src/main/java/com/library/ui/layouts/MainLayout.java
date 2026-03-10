@@ -4,6 +4,7 @@ import com.library.ui.views.Login;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -65,18 +66,26 @@ public final class MainLayout extends AppLayout {
     }
 
     private Component createLoginLogoutItem() {
-        return authContext.getAuthenticatedUser(UserDetails.class)
-            .map(user -> {
+        var layout = new HorizontalLayout();
+        layout.setAlignItems(FlexComponent.Alignment.CENTER);
+        layout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+        authContext.getAuthenticatedUser(UserDetails.class)
+            .ifPresentOrElse(user -> {
                 Button logout = new Button("Logout", click -> {
                     this.authContext.logout();
                 });
-                Span loggedInUser = new Span("Welcome " + user.getUsername());
-                return new HorizontalLayout(loggedInUser, logout);
-            }).orElseGet(() -> {
+                logout.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+                logout.setIcon(VaadinIcon.SIGN_OUT.create());
+                Span loggedInUser = new Span("Welcome, " + user.getUsername());
+                layout.add(loggedInUser, logout);
+            }, () -> {
                 Button login = new Button("Login", click -> {
                     getUI().ifPresent(ui -> ui.navigate(Login.class));
                 });
-                return new HorizontalLayout(login);
+                login.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+                login.setIcon(VaadinIcon.SIGN_IN.create());
+                layout.add(login);
             });
+        return layout;
     }
 }
