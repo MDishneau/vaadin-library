@@ -1,34 +1,38 @@
 package com.library.ui.views;
 
 import com.library.backend.dto.OpenLibraryBook;
+import com.library.backend.entities.Book;
+import com.library.backend.entities.BookRepository;
 import com.library.backend.service.OpenLibraryService;
+import com.library.security.Roles;
 import com.library.ui.components.ViewToolbar;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import jakarta.annotation.security.PermitAll;
+import jakarta.annotation.security.RolesAllowed;
 
 import java.util.List;
 
 @Route("discover")
 @PageTitle("Discover Books")
 @Menu(order = 2, title = "Discover", icon = "vaadin:search")
-@PermitAll
+@RolesAllowed(Roles.ADMIN)
 public class Discover extends VerticalLayout {
     private final OpenLibraryService openLibraryService;
+    private final BookRepository bookRepo;
     private final Grid<OpenLibraryBook> grid;
 
-    public Discover(OpenLibraryService openLibraryService) {
+    public Discover(OpenLibraryService openLibraryService, BookRepository bookRepo) {
         this.openLibraryService = openLibraryService;
+        this.bookRepo = bookRepo;
 
         setSizeFull();
 
@@ -55,6 +59,26 @@ public class Discover extends VerticalLayout {
         grid = new Grid<>(OpenLibraryBook.class, false); // false disables auto-generated columns
         grid.addColumn(OpenLibraryBook::title).setHeader("Title").setAutoWidth(true);
         grid.addColumn(OpenLibraryBook::getFormattedAuthors).setHeader("Author(s)").setAutoWidth(true);
+        grid.addComponentColumn(openLibraryBook -> {
+            Button removeBtn = new Button("Remove from library");
+            Button addBtn = new Button("Add to library");
+
+            removeBtn.addClickListener(click -> {
+                bookRepo.deleteByOpenLibraryKey(openLibraryBook.key());
+                grid.getDataProvider().refreshItem(openLibraryBook);
+            });
+            addBtn.addClickListener(click -> {
+                bookRepo.save(new Book(
+                        openLibraryBook.key(),
+                        openLibraryBook.title(),
+                        openLibraryBook.getFormattedAuthors(),
+                        null
+                ));
+                grid.getDataProvider().refreshItem(openLibraryBook);
+            });
+
+            return bookRepo.existsByOpenLibraryKey(openLibraryBook.key()) ? removeBtn : addBtn;
+        });
 
         // --- Search Logic ---
         searchButton.addClickListener(e -> {

@@ -19,7 +19,7 @@ import jakarta.annotation.security.PermitAll;
 
 @Route("books")
 @PermitAll
-public class BookDetails extends VerticalLayout implements HasUrlParameter<Long> {
+public class BookDetails extends VerticalLayout implements HasUrlParameter<String> {
     private final BookRepository bookRepo;
     private final AuthenticationContext authContext;
 
@@ -83,7 +83,7 @@ public class BookDetails extends VerticalLayout implements HasUrlParameter<Long>
 
 
     @Override
-    public void setParameter(BeforeEvent beforeEvent, Long bookId) {
+    public void setParameter(BeforeEvent beforeEvent, String bookId) {
         bookRepo.findById(bookId).ifPresentOrElse(
         b -> {
                 book = b;

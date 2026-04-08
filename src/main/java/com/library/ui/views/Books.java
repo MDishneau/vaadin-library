@@ -13,6 +13,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.spring.security.AuthenticationContext;
 import jakarta.annotation.security.PermitAll;
+import org.springframework.security.core.userdetails.User;
 
 @Route("books")
 @PageTitle("Catalogue")
@@ -26,7 +27,16 @@ public class Books extends VerticalLayout implements BeforeEnterObserver {
         this.bookRepo = bookRepo;
         this.authContext = authContext;
 
-        BookGrid grid = new BookGrid(this.bookRepo.findAll());
+        BookGrid grid = new BookGrid(this.bookRepo::findAll);
+
+        String activeUsername = this.authContext.getAuthenticatedUser(User.class).map(User::getUsername).orElse("");
+
+        // Add Favourites Button
+        grid.addFavoriteColumn(
+            activeUsername,
+            bookRepo::save
+        );
+
         // navigate to Book Details page when I click on the grid item for that book
         grid.addItemClickListener(click -> {
             Book targetBook = click.getItem();
