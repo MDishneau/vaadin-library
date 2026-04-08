@@ -28,6 +28,17 @@ public class Book {
     @Column(name = "username") // name of bridge table column referencing username
     private Set<String> favouritedByUsers = new HashSet<>(); // use hash set since a collection of unique usernames
 
+    // Book owns the bridge table, meaning saving a book with a change in its genres will update the bridge table
+    // Referencing the set of books for a given genre is like a readonly action -
+    // if you update that set and save the genre, nothing happens in the bridge table
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+        name = "book_genre", // name of bridge table
+        joinColumns = @JoinColumn(name = "book_id"), // column pointing to THIS entity
+        inverseJoinColumns = @JoinColumn(name = "genre_id") // column poiting to OTHER entity in the relationship
+    )
+    private Set<Genre> genres = new HashSet<>();
+
     public Book() {}
 
     public Book(String title, String author, String isbn) {
@@ -47,8 +58,12 @@ public class Book {
         return favouritedByUsers;
     }
 
-    public void setFavouritedByUsers(Set<String> favouritedByUsers) {
-        this.favouritedByUsers = favouritedByUsers;
+    public Set<Genre> getGenres() {
+        return genres;
+    }
+
+    public void setGenres(Set<Genre> genres) {
+        this.genres = genres;
     }
 
     public Long getId() {
@@ -81,6 +96,19 @@ public class Book {
 
     public void setIsbn(String isbn) {
         this.isbn = isbn;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Book book = (Book) o;
+        return id != null && id.equals(book.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 
 }

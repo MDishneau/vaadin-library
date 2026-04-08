@@ -2,6 +2,7 @@ package com.library.ui.views;
 
 import com.library.backend.entities.Book;
 import com.library.backend.entities.BookRepository;
+import com.library.backend.entities.GenreRepository;
 import com.library.security.Roles;
 import com.library.ui.components.BookForm;
 import com.library.ui.components.ViewToolbar;
@@ -21,6 +22,7 @@ import jakarta.annotation.security.PermitAll;
 @PermitAll
 public class BookDetails extends VerticalLayout implements HasUrlParameter<String> {
     private final BookRepository bookRepo;
+    private final GenreRepository genreRepo;
     private final AuthenticationContext authContext;
 
     private Book book;
@@ -28,13 +30,15 @@ public class BookDetails extends VerticalLayout implements HasUrlParameter<Strin
     private Button editBtn = new Button("Edit");
     private Button deleteBtn = new Button("Delete");
 
-    public BookDetails(BookRepository bookRepo, AuthenticationContext authContext) {
+    public BookDetails(BookRepository bookRepo, GenreRepository genreRepo, AuthenticationContext authContext) {
         this.bookRepo = bookRepo;
+        this.genreRepo = genreRepo;
         this.authContext = authContext;
 
         bookForm.setEditable(false);
         bookForm.addSaveListener(this::saveBook);
         bookForm.addCancelListener(this::cancelEdit);
+        bookForm.setGenres(this.genreRepo.findAll());
 
         configureLayout();
         configureButtons();
