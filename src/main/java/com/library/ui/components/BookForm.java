@@ -1,14 +1,19 @@
 package com.library.ui.components;
 
 import com.library.backend.Book;
+import com.library.backend.Branch;
+import com.library.backend.Genre;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 public class BookForm extends VerticalLayout {
@@ -18,6 +23,8 @@ public class BookForm extends VerticalLayout {
     private final FormLayout formLayout = new FormLayout();
     private final Button saveBtn = new Button("Save");
     private final Button cancelBtn = new Button("Cancel");
+    private final ComboBox<Branch> branch = new ComboBox<>();
+    private final MultiSelectComboBox<Genre> genres = new MultiSelectComboBox<>();
 
     private Consumer<Book> onSave;
     private Runnable onCancel;
@@ -29,6 +36,11 @@ public class BookForm extends VerticalLayout {
         TextField author = new TextField("Author");
         TextField isbn = new TextField("ISBN");
 
+        branch.setItemLabelGenerator(Branch::getName);
+        branch.setLabel("Branch");
+        genres.setItemLabelGenerator(Genre::getName);
+        genres.setLabel("Genre");
+
         binder.forField(title)
                 .asRequired()
                 .bind(Book::getTitle, Book::setTitle);
@@ -36,13 +48,15 @@ public class BookForm extends VerticalLayout {
                 .asRequired()
                 .bind(Book::getAuthor, Book::setAuthor);
         binder.forField(isbn)
-                .asRequired()
-                .withValidator(value -> value.length() == 10, "ISBN must be 10 digits")
                 .bind(Book::getIsbn, Book::setIsbn);
+        binder.forField(branch)
+                .bind(Book::getBranch, Book::setBranch);
+        binder.forField(genres)
+                .bind(Book::getGenres, Book::setGenres);
 
         formLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0",1));
 
-        formLayout.add(title, author, isbn);
+        formLayout.add(title, author, isbn, branch, genres);
 
         configureButtons();
 
@@ -86,11 +100,21 @@ public class BookForm extends VerticalLayout {
         this.onCancel = onCancel;
     }
 
+    public void setBranches(List<Branch> branches) {
+        branch.setItems(branches);
+    }
+
+    public void setGenres(List<Genre> genres) {
+        this.genres.setItems(genres);
+    }
+
     public void setEditable(boolean isEditing) {
         binder.getFields().forEach(field -> field.setReadOnly(!isEditing));
         saveBtn.setEnabled(isEditing);
         saveBtn.setVisible(isEditing);
         cancelBtn.setEnabled(isEditing);
         cancelBtn.setVisible(isEditing);
+        branch.setEnabled(isEditing);
+        genres.setEnabled(isEditing);
     }
 }
