@@ -2,7 +2,7 @@ package com.library.ui.views;
 
 import com.library.backend.entities.Book;
 import com.library.backend.entities.BookRepository;
-import com.library.security.Roles;
+import com.library.backend.service.UserService;
 import com.library.ui.components.BookGrid;
 import com.library.ui.components.SearchBar;
 import com.library.ui.components.ViewToolbar;
@@ -11,9 +11,7 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.*;
-import com.vaadin.flow.spring.security.AuthenticationContext;
 import jakarta.annotation.security.PermitAll;
-import org.springframework.security.core.userdetails.User;
 
 @Route("books")
 @PageTitle("Catalogue")
@@ -21,20 +19,18 @@ import org.springframework.security.core.userdetails.User;
 @PermitAll
 public class Books extends VerticalLayout implements BeforeEnterObserver {
     private final BookRepository bookRepo;
-    private final AuthenticationContext authContext;
+    private final UserService userService;
 
-    public Books(BookRepository bookRepo, AuthenticationContext authContext) {
+    public Books(BookRepository bookRepo, UserService userService) {
         this.bookRepo = bookRepo;
-        this.authContext = authContext;
+        this.userService = userService;
 
         BookGrid grid = new BookGrid(this.bookRepo::findAll);
 
-        String activeUsername = this.authContext.getAuthenticatedUser(User.class).map(User::getUsername).orElse("");
-
         // Add Favourites Button
         grid.addFavoriteColumn(
-            activeUsername,
-            bookRepo::save
+            this.userService.getFavouriteBooks(),
+            this.userService::toggleFavouriteBooks
         );
 
         // navigate to Book Details page when I click on the grid item for that book
@@ -51,7 +47,7 @@ public class Books extends VerticalLayout implements BeforeEnterObserver {
         });
 
         // hide and disable the addBtn if user is not admin
-        if(!this.authContext.hasRole(Roles.ADMIN)) {
+        if(!userService.isAdmin()) {
             addBtn.setVisible(false);
             addBtn.setEnabled(false);
         }

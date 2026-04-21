@@ -4,7 +4,7 @@ import com.library.backend.dto.OpenLibraryBook;
 import com.library.backend.entities.Book;
 import com.library.backend.entities.BookRepository;
 import com.library.backend.service.OpenLibraryService;
-import com.library.security.Roles;
+import com.library.security.Role;
 import com.library.ui.components.ViewToolbar;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
@@ -24,7 +24,7 @@ import java.util.List;
 @Route("discover")
 @PageTitle("Discover Books")
 @Menu(order = 2, title = "Discover", icon = "vaadin:search")
-@RolesAllowed(Roles.ADMIN)
+@RolesAllowed(Role.RoleConstants.ADMIN)
 public class Discover extends VerticalLayout {
     private final OpenLibraryService openLibraryService;
     private final BookRepository bookRepo;
@@ -64,11 +64,11 @@ public class Discover extends VerticalLayout {
             Button addBtn = new Button("Add to library");
 
             removeBtn.addClickListener(click -> {
-                bookRepo.deleteByOpenLibraryKey(openLibraryBook.key());
+                this.bookRepo.deleteByOpenLibraryKey(openLibraryBook.key());
                 grid.getDataProvider().refreshItem(openLibraryBook);
             });
             addBtn.addClickListener(click -> {
-                bookRepo.save(new Book(
+                this.bookRepo.save(new Book(
                         openLibraryBook.key(),
                         openLibraryBook.title(),
                         openLibraryBook.getFormattedAuthors(),
@@ -77,7 +77,7 @@ public class Discover extends VerticalLayout {
                 grid.getDataProvider().refreshItem(openLibraryBook);
             });
 
-            return bookRepo.existsByOpenLibraryKey(openLibraryBook.key()) ? removeBtn : addBtn;
+            return this.bookRepo.existsByOpenLibraryKey(openLibraryBook.key()) ? removeBtn : addBtn;
         });
 
         // --- Search Logic ---
@@ -89,7 +89,7 @@ public class Discover extends VerticalLayout {
             grid.setItems();
 
             // Fetch from API and update the grid
-            List<OpenLibraryBook> results = openLibraryService.searchBooks(type, query);
+            List<OpenLibraryBook> results = this.openLibraryService.searchBooks(type, query);
             grid.setItems(results);
         });
 

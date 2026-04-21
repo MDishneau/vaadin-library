@@ -4,7 +4,7 @@ import com.library.backend.entities.Book;
 import com.library.backend.entities.BookRepository;
 import com.library.backend.entities.BranchRepository;
 import com.library.backend.entities.GenreRepository;
-import com.library.security.Roles;
+import com.library.backend.service.UserService;
 import com.library.ui.components.BookForm;
 import com.library.ui.components.ViewToolbar;
 import com.vaadin.flow.component.button.Button;
@@ -15,33 +15,32 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.spring.security.AuthenticationContext;
 import jakarta.annotation.security.PermitAll;
 
 
 @Route("books")
 @PermitAll
-public class BookDetails extends VerticalLayout implements HasUrlParameter<String> {
+public class BookDetails extends VerticalLayout implements HasUrlParameter<Long> {
     private final BookRepository bookRepo;
     private final GenreRepository genreRepo;
     private final BranchRepository branchRepo;
-    private final AuthenticationContext authContext;
+    private final UserService userService;
 
     private Book book;
     private final BookForm bookForm = new BookForm();
-    private Button editBtn = new Button("Edit");
-    private Button deleteBtn = new Button("Delete");
+    private final Button editBtn = new Button("Edit");
+    private final Button deleteBtn = new Button("Delete");
 
     public BookDetails(
             BookRepository bookRepo,
             GenreRepository genreRepo,
             BranchRepository branchRepo,
-            AuthenticationContext authContext
+            UserService userService
     ) {
         this.bookRepo = bookRepo;
         this.genreRepo = genreRepo;
         this.branchRepo = branchRepo;
-        this.authContext = authContext;
+        this.userService = userService;
 
         bookForm.setEditable(false);
         bookForm.addSaveListener(this::saveBook);
@@ -55,9 +54,7 @@ public class BookDetails extends VerticalLayout implements HasUrlParameter<Strin
 
     private void configureLayout() {
         Button backBtn = new Button("Back to All Books");
-        backBtn.addClickListener(click -> {
-            getUI().ifPresent(ui -> ui.navigate("books"));
-        });
+        backBtn.addClickListener(click -> getUI().ifPresent(ui -> ui.navigate("books")));
         ViewToolbar toolbar = new ViewToolbar("Book Details", backBtn);
         HorizontalLayout actions = new HorizontalLayout(editBtn, deleteBtn);
         add(toolbar, bookForm, actions);
@@ -65,7 +62,7 @@ public class BookDetails extends VerticalLayout implements HasUrlParameter<Strin
 
     private void configureButtons() {
         // hide and disable edit/delete buttons if not Admin
-        if(!authContext.hasRole(Roles.ADMIN)) {
+        if(!userService.isAdmin()) {
             editBtn.setVisible(false);
             editBtn.setEnabled(false);
             deleteBtn.setVisible(false);
@@ -78,9 +75,7 @@ public class BookDetails extends VerticalLayout implements HasUrlParameter<Strin
         deleteBtn.addThemeVariants(ButtonVariant.LUMO_ERROR);
 
         // logic
-        editBtn.addClickListener(click -> {
-            setEditable(true);
-        });
+        editBtn.addClickListener(click -> setEditable(true));
         deleteBtn.addClickListener(click -> {
             // open a dialogue box to ask the user to confirm the delete action
             ConfirmDialog confirmDialog = new ConfirmDialog();
@@ -89,14 +84,14 @@ public class BookDetails extends VerticalLayout implements HasUrlParameter<Strin
             confirmDialog.setCancelable(true);
             confirmDialog.setConfirmText("Delete");
             confirmDialog.setConfirmButtonTheme("error primary");
-            confirmDialog.addConfirmListener(event -> {this.deleteBook(book);});
+            confirmDialog.addConfirmListener(event -> this.deleteBook(book));
             confirmDialog.open();
         });
     }
 
 
     @Override
-    public void setParameter(BeforeEvent beforeEvent, String bookId) {
+    public void setParameter(BeforeEvent beforeEvent, Long bookId) {
         bookRepo.findById(bookId).ifPresentOrElse(
         b -> {
                 book = b;

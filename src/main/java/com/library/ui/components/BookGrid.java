@@ -10,6 +10,7 @@ import com.vaadin.flow.data.provider.ListDataProvider;
 import utils.StringUtils;
 
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -29,7 +30,7 @@ public class BookGrid  extends Grid<Book> {
 
     private void refreshData() {
         List<Book> freshData = dataFetcher.get();
-        ListDataProvider<Book> dataProvider = new ListDataProvider<>(freshData);
+        this.dataProvider = new ListDataProvider<>(freshData);
         setDataProvider(dataProvider);
     }
 
@@ -45,10 +46,10 @@ public class BookGrid  extends Grid<Book> {
 
     // THE NEW "DUMB" HOOK
     // It only needs the username to check the set, and a callback method for the click
-    public void addFavoriteColumn(String activeUsername, Consumer<Book> onFavoriteToggle) {
+    public void addFavoriteColumn(Set<Book> favouriteBooks, Consumer<Book> onFavoriteToggle) {
 
         addComponentColumn(book -> {
-            boolean isFavourited = book.getFavouritedByUsers().contains(activeUsername);
+            boolean isFavourited = favouriteBooks.contains(book);
 
             Icon starIcon = isFavourited ? VaadinIcon.STAR.create() : VaadinIcon.STAR_O.create();
             starIcon.setColor(isFavourited ? "gold" : "gray");
@@ -57,17 +58,18 @@ public class BookGrid  extends Grid<Book> {
             favBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ICON);
 
             favBtn.addClickListener(click -> {
-                // Toggle favourite state
-                if (isFavourited) {
-                    book.getFavouritedByUsers().remove(activeUsername);
-                } else {
-                    book.getFavouritedByUsers().add(activeUsername);
-                }
-                // Hand the book to the callback method for saving to database
+                // update db
                 onFavoriteToggle.accept(book);
 
-                // refresh data by calling supplier again (important when removing a fav from MyBooks view)
-                refreshData();
+                // mutate UI state
+                if (isFavourited) {
+                    favouriteBooks.remove(book);
+                } else {
+                    favouriteBooks.add(book);
+                }
+
+                // reload single row
+                this.dataProvider.refreshItem(book);
             });
 
             return favBtn;

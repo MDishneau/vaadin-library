@@ -1,8 +1,6 @@
 package com.library.backend.entities;
 
-import com.vaadin.copilot.shaded.checkerframework.common.aliasing.qual.Unique;
 import jakarta.persistence.*;
-import org.hibernate.annotations.AnyDiscriminatorImplicitValues;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -20,14 +18,6 @@ public class Book {
     private String author;
     private String isbn;
 
-    @ElementCollection( fetch = FetchType.EAGER )
-    @CollectionTable(
-            name = "book_favourites", // name of bridge table
-            joinColumns = @JoinColumn(name = "book_id") // name of bridge table column referencing book id
-    )
-    @Column(name = "username") // name of bridge table column referencing username
-    private Set<String> favouritedByUsers = new HashSet<>(); // use hash set since a collection of unique usernames
-
     // Book owns the bridge table, meaning saving a book with a change in its genres will update the bridge table
     // Referencing the set of books for a given genre is like a readonly action -
     // if you update that set and save the genre, nothing happens in the bridge table
@@ -39,7 +29,7 @@ public class Book {
     )
     private Set<Genre> genres = new HashSet<>();
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "branch_id")
     private Branch branch;
 
@@ -58,10 +48,6 @@ public class Book {
         this.isbn = isbn;
     }
 
-    public Set<String> getFavouritedByUsers() {
-        return favouritedByUsers;
-    }
-
     public Set<Genre> getGenres() {
         return genres;
     }
@@ -72,10 +58,6 @@ public class Book {
 
     public Long getId() {
         return id;
-    }
-
-    public String getOpenLibraryKey() {
-        return openLibraryKey;
     }
 
     public String getTitle() {
