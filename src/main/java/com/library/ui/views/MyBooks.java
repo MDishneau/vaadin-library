@@ -23,7 +23,10 @@ public class MyBooks extends VerticalLayout {
         BookGrid grid = new BookGrid(() -> this.userService.getFavouriteBooks().stream().toList());
         grid.addFavoriteColumn(
             this.userService.getFavouriteBooks(),
-            this.userService::toggleFavouriteBooks
+            book -> {
+                this.userService.toggleFavouriteBooks(book);
+                grid.refreshData(); // need to reload data since we only want current favourites
+            }
         );
 
         // navigate to Book Details page when I click on the grid item for that book

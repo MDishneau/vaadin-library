@@ -28,7 +28,7 @@ public class BookGrid  extends Grid<Book> {
         addColumn(Book::getIsbn).setHeader("ISBN");
     }
 
-    private void refreshData() {
+    public void refreshData() {
         List<Book> freshData = dataFetcher.get();
         this.dataProvider = new ListDataProvider<>(freshData);
         setDataProvider(dataProvider);
