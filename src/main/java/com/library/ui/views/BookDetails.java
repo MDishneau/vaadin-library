@@ -28,8 +28,8 @@ public class BookDetails extends VerticalLayout implements HasUrlParameter<Long>
 
     private Book book;
     private final BookForm bookForm = new BookForm();
-    private final Button editBtn = new Button("Edit");
-    private final Button deleteBtn = new Button("Delete");
+    private Button editBtn = new Button("Edit");
+    private Button deleteBtn = new Button("Delete");
 
     public BookDetails(
             BookRepository bookRepo,

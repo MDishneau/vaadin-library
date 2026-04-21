@@ -36,8 +36,10 @@ public class BookForm extends VerticalLayout {
         TextField author = new TextField("Author");
         TextField isbn = new TextField("ISBN");
 
-        genres.setItemLabelGenerator(Genre::getName);
         branch.setItemLabelGenerator(Branch::getName);
+        branch.setLabel("Branch");
+        genres.setItemLabelGenerator(Genre::getName);
+        genres.setLabel("Genre");
 
         binder.forField(title)
                 .asRequired()
@@ -46,11 +48,13 @@ public class BookForm extends VerticalLayout {
                 .asRequired()
                 .bind(Book::getAuthor, Book::setAuthor);
         binder.forField(isbn)
+                .asRequired()
+                .withValidator(value -> value.length() == 10, "ISBN must be 10 digits")
                 .bind(Book::getIsbn, Book::setIsbn);
-        binder.forField(genres)
-                .bind(Book::getGenres, Book::setGenres);
         binder.forField(branch)
                 .bind(Book::getBranch, Book::setBranch);
+        binder.forField(genres)
+                .bind(Book::getGenres, Book::setGenres);
 
         formLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0",1));
 
